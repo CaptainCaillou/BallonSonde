@@ -3,10 +3,13 @@ import os
 import time
 import subprocess
 import RPi.GPIO as GPIO
+#On définie le port 18 comme port d'activation de la prise des photos / Mesures
 GPIO.setup(18, GPIO.IN)
 from os import chdir
+#On sélectionne le dossier
 chdir("/home/pi/")
-nomDossier = time.strftime('%d/%m/%y %H:%M',time.localtime())
+#On crée le nom du dossier de sauvegarde avec le jour
+nomDossier = time.strftime('%d/%m/%y',time.localtime())
 os.mkdir(nomDossier, mode=0777)
 chdir(nomDossier)
 #Liste des modes d'expositions disponibles : 
