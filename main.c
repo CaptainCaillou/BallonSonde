@@ -1,7 +1,10 @@
+//librairies à ajouter
 #include <stdio.h>
+#include <wiringPi.h>
 
-int main()
+//fonction principale
+int main(void)
 {
-
-return 0
+  
+return 0;
 }
