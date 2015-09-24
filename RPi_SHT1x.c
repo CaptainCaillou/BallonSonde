@@ -174,9 +174,9 @@ unsigned char SHT1x_Measure_Start( SHT1xMeasureType type )
 	return SHT1x_Sendbyte( (unsigned char) type );
 }
 
-unsigned char SHT1x_Get_Measure_Value( unsigned short int * value ) 
+int SHT1x_Get_Measure_Value(void); 
 {
-	unsigned char * chPtr = (unsigned char*) value;
+	int value;
 	unsigned char checksum;
 	unsigned char delay_count=62;  /* delay is 62 * 5ms */
 
@@ -191,14 +191,11 @@ unsigned char SHT1x_Get_Measure_Value( unsigned short int * value )
 			return FALSE;
 	}
 
-	*(chPtr + 1) = SHT1x_Readbyte( TRUE );  // read hi byte
-	SHT1x_Crc_Check(*(chPtr + 1));  		// crc calculation
-	*chPtr = SHT1x_Readbyte( TRUE );    	// read lo byte
-	SHT1x_Crc_Check(* chPtr);    			// crc calculation
+	value = SHT1x_Readbyte( TRUE );  // read hi byte
+	value = value << 8 ; // et on décale !
+	value += SHT1x_Readbyte( TRUE );    	// read lo byte
 
-	checksum = SHT1x_Readbyte( FALSE );   // crc calculation
-	// compare it.
-	return SHT1x_Mirrorbyte( checksum ) == SHT1x_crc ? TRUE : FALSE;
+	return value
 }
 
 

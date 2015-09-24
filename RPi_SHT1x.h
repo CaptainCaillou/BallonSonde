@@ -61,7 +61,7 @@ unsigned char SHT1x_Readbyte( unsigned char sendAck );
 unsigned char SHT1x_Sendbyte( unsigned char value );
 void SHT1x_InitPins( void );
 unsigned char SHT1x_Measure_Start( SHT1xMeasureType type );
-unsigned char SHT1x_Get_Measure_Value(unsigned short int * value );
+int SHT1x_Get_Measure_Value(void);//----------------------------------------------------unsigned char SHT1x_Get_Measure_Value(unsigned short int * value );
 void SHT1x_Reset();
 unsigned char SHT1x_Mirrorbyte(unsigned char value);
 void SHT1x_Xrc_check(unsigned char value);
