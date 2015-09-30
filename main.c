@@ -34,8 +34,9 @@ int recupDataCAN(void) //pression et température en I2C
 	return DataCAN
 }
 
-float recupTempHumiCarteSHT(void)
+double recupTempHumiCarteSHT(void)
 {
+	double dataSHT;
 	char dataSHTc[12];
 	const float C1=-4.0;              		// for 12 Bit
 	const float C2=+0.0405;           		// for 12 Bit
@@ -66,18 +67,17 @@ float recupTempHumiCarteSHT(void)
 	if(rh_true>100)	rh_true=100;       		// cut if the value is outside of
 	if(rh_true<0.1)	rh_true=0.1;       		// the physical possible range
 
-	sprintf(dataSHTc,"%.2f%.2f",t_C,rh_true);
+	sprintf(dataSHTc,"%5f%5f",t_C*100,rh_true*100);//on multiplie par 100 pour conserver une precision au 100eme
 	dataSHT=atoi(dataSHTc);
 	return dataSHT;
 }
-
 
 
 int recupGPS(void) // Serie 
 {
 	int coordGPS;
 
-	return coordGPS
+	return coordGPS;
 }
 
 
@@ -87,12 +87,24 @@ int main(int argc, char *argv[])
 	SHT1x_InitPins(); //fonction d'initialisation du SHT15
 	SHT1x_Reset(); //on soft-reboot le SHT15
 
+	float dataSHT;
 	char totalMesures[30];
 	int tempBallon, DataCAN, coordGPS;
 	FILE* fichier = NULL;
 	fichier = fopen("mesures.csv","a");
 
-	fprintf(totalMesures, "%f, %f, %f,  \n",TBallon );
+	//récupération des données TEMP et HUMI de la carte
+	dataSHT=recupTempHumiCarteSHT();
+	dataSHTc= itoa(dataSHT);
+	for(i=0;i<5;i++)
+	{
+		TempCart[i]=dataSHTc[i];
+		HumiCart[i]=dataSHTc[i+4];
+	}
+	//fin de récupération des données TEMP et HUMI de la carte
+
+	fprintf(totalMesures, "%s, %s, %f,  \n",TempCart, HumiCart, TBallon );
+
 	fputs(totalMesures,fichier);
 	fclose(fichier);
 	return 0;
