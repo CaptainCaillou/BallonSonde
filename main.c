@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
 	}
 	//fin de récupération des données TEMP et HUMI de la carte
 
-	fprintf(totalMesures, "%s, %s, %f,  \n",TempCart, HumiCart, TBallon );
+	fprintf(totalMesures, "%s, %s, %f,  \n",TempCart, HumiCart, TBallon );// à noter que la température et l'humidité sont toujours multipliés par 100
 
 	fputs(totalMesures,fichier);
 	fclose(fichier);
