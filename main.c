@@ -8,6 +8,10 @@
 #include <wiringPiI2C.h>
 #include <wiringPiSPI.h>
 
+#include <unistd.h>			//Used for UART
+#include <fcntl.h>			//Used for UART
+#include <termios.h>		//Used for UART
+
 int recupTempBallon(void) //1wire
 {
 	int tempBallon;
@@ -79,12 +83,41 @@ double recupTempHumiCarteSHT(void)
 
 int recupGPS(void) // Serie 
 {
+	uart0_filestream = open("/dev/ttyAMA0", O_RDWR | O_NOCTTY | O_NDELAY);
 	int coordGPS;
+	unsigned char rx_buffer[256];
+	
+		int rx_length = read(uart0_filestream, (void*)rx_buffer, 255);		//Filestream, buffer to store in, number of bytes to read (max)
+		if (rx_length < 0)
+		{
+			//An error occured (will occur if there are no bytes)
+		}
+		else if (rx_length == 0)
+		{
+			//No data waiting
+		}
+		else
+		{
+			//Bytes received
+			rx_buffer[rx_length] = '\0';
+			printf("%i bytes read : %s\n", rx_length, rx_buffer);
+		}
 
 	return coordGPS;
 }
 
-
+void CalcCHKGPS(char donnee[])
+{
+  int indice;									//
+  char chk=0;									//Déclaration des variables
+  indice=1;										//
+  while(donnee[indice]!='*')					//
+  {												//
+    chk^=donnee[indice];						//calcul du cheksum1
+    indice++;									//
+  }												//
+  sprintf(&donnee[indice+1],"%02X",chk);		//
+}
 
 int main(int argc, char *argv[])
 {
@@ -95,11 +128,51 @@ int main(int argc, char *argv[])
 	char totalMesures[30];
 	int tempBallon, DataCAN, coordGPS;
 
+	//initialisation du gps
+	uart0_filestream = open("/dev/ttyAMA0", O_RDWR | O_NOCTTY | O_NDELAY);
+	struct termios options;
+	tcgetattr(uart0_filestream, &options);
+	options.c_cflag = B4800 | CS8 | CLOCAL | CREAD;		//<Set baud rate
+	options.c_iflag = IGNPAR;
+	options.c_oflag = 0;
+	options.c_lflag = 0;
+	tcflush(uart0_filestream, TCIFLUSH);
+	tcsetattr(uart0_filestream, TCSANOW, &options);
+	char TrameSetupGPS[25][9] = {
+		{
+			"$PSRF100,1,4800,8,1,0*00"
+		},{
+			"$PSRF103,02,00,00,00*00"
+		},{
+			"$PSRF103,03,00,00,00*00"
+		},{
+			"$PSRF103,04,00,00,00*00"
+		},{
+			"$PSRF103,01,00,00,00*00"
+		},{
+			"$PSRF103,05,00,00,00*00"
+		},{
+			"$PSRF103,08,00,00,00*00"
+		},{
+			"$PSRF103,06,00,00,00*00"
+		},{
+			"$PSRF103,00,00,01,00*00"
+		}
+	}
+	for(char tr=0;tr<9,tr++)
+	{
+		CalcCHKGPS(TrameSetupGPS[][tr]);
+		write(uart0_filestream, TrameSetupGPS[][tr], 23);		//Filestream, bytes to write, number of bytes to write
+		write(uart0_filestream, "0x0D", 23);
+		write(uart0_filestream, "0x0D", 23);
+	}
+
 	//récupération des données TEMP et HUMI de la carte
 	dataSHT=recupTempHumiCarteSHT();
 	dataSHTc= itoa(dataSHT);
 	for(i=0;i<5;i++)
 	{
+
 		TempCart[i]=dataSHTc[i];
 		HumiCart[i]=dataSHTc[i+4];
 	}
@@ -113,4 +186,6 @@ int main(int argc, char *argv[])
 	fputs(totalMesures,fichier);
 	fclose(fichier);
 	return 0;
+
+	close(uart0_filestream); //Nous n'avons plus besoin du GPS, on le déconnecte
 }
