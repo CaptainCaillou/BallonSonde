@@ -11,24 +11,28 @@
 int recupTempBallon(void) //1wire
 {
 	int tempBallon;
-
-	//protocole 1wire
-
+	FILE* ds18b20 = NULL;
+	ds18b20 = fopen("/sys/bus/w1/devices/ID_DU_CAPTEUR/w1_slave","r");
+	char check=0;
+	char temp[5];
+	do{
+		if(check>0){
+			temp[5-check]=c;
+			check--;
+		}
+		c=fgetc(ds18b20);
+		if(check)
+		if(c=='=')
+			 check=5;
+	}while(c != EOF);
+	fclose(fichier);
+	tempBallon=atoi(temp);
 	return tempBallon
 }
 
 int recupDataCAN(void) //pression et température en I2C
 {
 	int DataCAN;
-	int I2CCorrect = wiringPiI2CSetup();
-	if(I2CCorrect!=-1)
-	{
-		//l'I2C est bien ouvert
-		DataCAN=wiringPiI2CRead(); // on lit les données I2C
-	}else
-	{
-		return -200;
-	}
 
 
 	return DataCAN
@@ -90,8 +94,6 @@ int main(int argc, char *argv[])
 	float dataSHT;
 	char totalMesures[30];
 	int tempBallon, DataCAN, coordGPS;
-	FILE* fichier = NULL;
-	fichier = fopen("mesures.csv","a");
 
 	//récupération des données TEMP et HUMI de la carte
 	dataSHT=recupTempHumiCarteSHT();
@@ -103,8 +105,11 @@ int main(int argc, char *argv[])
 	}
 	//fin de récupération des données TEMP et HUMI de la carte
 
-	fprintf(totalMesures, "%s, %s, %f,  \n",TempCart, HumiCart, TBallon );// à noter que la température et l'humidité sont toujours multipliés par 100
+	tempBallon=recupTempBallon();
+	fprintf(totalMesures, "%s, %s, %f,  \n",TempCart, HumiCart, TBallon );// à noter que la température et l'humidité sont toujours multipliées par 100
 
+	FILE* fichier = NULL;
+	fichier = fopen("mesures.csv","a");
 	fputs(totalMesures,fichier);
 	fclose(fichier);
 	return 0;
