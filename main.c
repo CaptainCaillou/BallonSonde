@@ -25,7 +25,6 @@ int recupTempBallon(void) //1wire
 			check--;
 		}
 		c=fgetc(ds18b20);
-		if(check)
 		if(c=='=')
 			 check=5;
 	}while(c != EOF);
