@@ -36,7 +36,7 @@ int recupTempBallon(void) //1wire
 int recupDataCAN(void) //pression et température en I2C
 {
 	int DataCAN;
-
+	
 
 	return DataCAN
 }
@@ -120,6 +120,7 @@ void CalcCHKGPS(char donnee[])
 
 int main(int argc, char *argv[])
 {
+	bcm2835_i2c_end(); //initialisation de la liaison I2C
 	SHT1x_InitPins(); //fonction d'initialisation du SHT15
 	SHT1x_Reset(); //on soft-reboot le SHT15
 
@@ -137,6 +138,8 @@ int main(int argc, char *argv[])
 	options.c_lflag = 0;
 	tcflush(uart0_filestream, TCIFLUSH);
 	tcsetattr(uart0_filestream, TCSANOW, &options);
+	//nous trouvons ci-dessous les trames à envoyer au GPS pour le configurer
+	//elles sont rangées dans un tableau pour les envoyer les unes après les autres
 	char TrameSetupGPS[25][9] = {
 		{
 			"$PSRF100,1,4800,8,1,0*00"
